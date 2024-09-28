@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, Button, TextInput, Alert, StyleSheet } from "react-native";
-import CheckBox from 'react-native-check-box'; // Import the CheckBox component
+import { View, Text, Button, TextInput, Alert, StyleSheet, TouchableOpacity } from "react-native";
+import CheckBox from 'react-native-check-box';
 import Card from "../components/Card";
 import Colors from "../assets/Colors";
 
-const StartScreen = ({ startgame }) => {
+const StartScreen = ({ onRegister }) => {
   // State for the inputs
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -60,23 +60,27 @@ const StartScreen = ({ startgame }) => {
 
   // Confirm Input
   const confirmInput = () => {
-    if (!nameError && !emailError && !phoneError && name && email && phone) {
-      startgame(); // Calls the start game function in App.js
+    if (!nameError && !emailError && !phoneError && name && email && phone && isRobotChecked) {
+      onRegister(name, email, phone); // Correct function call
     } else {
       Alert.alert('Invalid Input', 'Please enter valid details to register');
     }
   };
 
+  // Check if all inputs are valid for enabling Register button
+  const isFormValid = !nameError && !emailError && !phoneError && name && email && phone && isRobotChecked;
+
   return (
     <View style={styles.screen}>
       <Text style={styles.title}>Guess My Number</Text>
-      <Card style={styles.inputContainer}>
+      <View style={styles.cardContainer}>
         <Text style={styles.cardTitle}>Name</Text>
         <TextInput
           style={styles.input}
           value={name}
           onChangeText={validateName}
           placeholder="Enter your name"
+          placeholderTextColor="#B0C4DE"
         />
         {nameError ? <Text style={styles.error}>{nameError}</Text> : null}
 
@@ -86,6 +90,7 @@ const StartScreen = ({ startgame }) => {
           value={email}
           onChangeText={validateEmail}
           placeholder="Enter your email"
+          placeholderTextColor="#B0C4DE"
         />
         {emailError ? <Text style={styles.error}>{emailError}</Text> : null}
 
@@ -96,10 +101,11 @@ const StartScreen = ({ startgame }) => {
           onChangeText={validatePhone}
           placeholder="Enter your phone number"
           keyboardType="phone-pad"
+          placeholderTextColor="#B0C4DE"
         />
         {phoneError ? <Text style={styles.error}>{phoneError}</Text> : null}
 
-        {/* Checkbox for "I am not a robot" */}
+        {/* Checkbox */}
         <View style={styles.checkboxContainer}>
           <CheckBox
             isChecked={isRobotChecked}
@@ -112,14 +118,18 @@ const StartScreen = ({ startgame }) => {
         {/* Buttons */}
         <View style={styles.buttonContainer}>
           <Button color={Colors.purplefont} title="Reset" onPress={resetInput} />
-          <Button
-            color={Colors.redfont}
-            title="Register"
+          <TouchableOpacity
             onPress={confirmInput}
-            disabled={!isRobotChecked || nameError || emailError || phoneError}
-          />
+            style={[
+              styles.registerButton,
+              { backgroundColor: isFormValid ? '#4682B4' : Colors.redfont }
+            ]}
+            disabled={!isFormValid}
+          >
+            <Text style={styles.registerButtonText}>Register</Text>
+          </TouchableOpacity>
         </View>
-      </Card>
+      </View>
     </View>
   );
 };
@@ -129,35 +139,39 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     alignItems: "center",
+    justifyContent: "center",
   },
   title: {
-    fontSize: 22,
-    color: Colors.purplefont,
-    margin: 20,
-    borderWidth: 2,
-    borderColor: Colors.purplefont,
-    padding: 10,
+    fontSize: 24,
+    color: '#9370DB', // Light purple font
+    fontWeight: 'bold',
+    position: 'absolute', // Position it absolutely
+    top: 70, // Distance from top of the screen
   },
-  cardTitle: {
-    fontSize: 20,
-    color: Colors.yellowfont,
-    textAlign: "center",
-    margin: 20,
-  },
-  input: {
-    height: 30,
-    fontSize: 20,
-    color: "#b8860b",
-    borderBottomColor: 'grey',
-    borderBottomWidth: 1,
-    marginVertical: 10,
-    textAlign: "center",
-  },
-  inputContainer: {
+  cardContainer: {
     width: "80%",
     maxWidth: "90%",
     minWidth: 250,
-    alignItems: "center",
+    padding: 20,
+    backgroundColor: 'rgba(211, 211, 211, 0.8)', // Light transparent grey for card background
+    borderRadius: 10,
+    marginTop: 120, // Add margin to avoid overlapping with the title
+  },
+  cardTitle: {
+    fontSize: 18,
+    color: '#4682B4', // Light blue font for input labels
+    textAlign: "left", // Align to the left
+    marginVertical: 10,
+  },
+  input: {
+    height: 40,
+    fontSize: 18,
+    color: "black", // Light purple for text input
+    borderBottomColor: '#9370DB',
+    borderBottomWidth: 1,
+    marginVertical: 10,
+    textAlign: "left", // Align input text to the left
+    width: '100%',
   },
   checkboxContainer: {
     flexDirection: 'row',
@@ -167,13 +181,24 @@ const styles = StyleSheet.create({
   checkboxText: {
     marginLeft: 8,
     fontSize: 16,
-    color: Colors.purplefont,
+    color: '#4682B4', // Light blue color for checkbox text
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: "90%",
+    width: "100%",
     marginTop: 20,
+  },
+  registerButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginLeft: 10,
+  },
+  registerButtonText: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
   },
   error: {
     color: 'red',
