@@ -3,10 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } fro
 import Colors from "../assets/Colors";
 import Card from "../components/Card";
 
-const GameScreen = ({ phone, onRestart }) => {
+const GameScreen = ({ phone, onRestart, onEndGame }) => {
   const lastDigit = phone[phone.length - 1];
-
-  // Generate possible numbers to guess (multiples of the last digit)
   const possibleNumbers = [];
   for (let i = 1; i <= 100; i++) {
     if (i % lastDigit === 0) {
@@ -18,7 +16,6 @@ const GameScreen = ({ phone, onRestart }) => {
     possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)]
   );
 
-  // State variables
   const [attempts, setAttempts] = useState(4);
   const [attemptsUsed, setAttemptsUsed] = useState(0);
   const [timeLeft, setTimeLeft] = useState(60);
@@ -28,78 +25,92 @@ const GameScreen = ({ phone, onRestart }) => {
   const [feedback, setFeedback] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+  const [gameOverReason, setGameOverReason] = useState("");
 
-  // Timer logic
   useEffect(() => {
-    let timer;
     if (gameStarted && timeLeft > 0) {
-      timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      const timer = setTimeout(() => {
+        setTimeLeft(timeLeft - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (timeLeft === 0) {
+      setGameOver(true);
+      setGameOverReason("You are out of time");
     }
-    return () => clearTimeout(timer);
   }, [timeLeft, gameStarted]);
 
   const handleStart = () => {
     setGameStarted(true);
   };
 
-  // Use a hint
   const useHint = () => {
     if (!hint) {
-      // Calculate a larger range for the hint (30 interval)
-      const lowerBound = Math.max(1, chosenNumber - 15); // At least 1
-      const upperBound = Math.min(100, chosenNumber + 15); // At most 100
+      const lowerBound = Math.floor((chosenNumber - 15) / 10) * 10;
+      const upperBound = Math.ceil((chosenNumber + 15) / 10) * 10;
       setHint(`The correct number is between ${lowerBound} and ${upperBound}`);
     }
   };
 
   const submitGuess = () => {
-    const parsedGuess = parseInt(guess);
-    if (isNaN(parsedGuess) || parsedGuess < 1 || parsedGuess > 100) {
-      Alert.alert('Invalid Input', 'Please enter a valid number between 1 and 100.');
+    const numericGuess = parseInt(guess);
+    if (isNaN(numericGuess) || numericGuess < 1 || numericGuess > 100) {
+      Alert.alert("Invalid Guess", "Please enter a number between 1 and 100.");
       return;
     }
-    
+
     setAttempts(attempts - 1);
     setAttemptsUsed(attemptsUsed + 1);
 
-    if (parsedGuess === chosenNumber) {
+    if (numericGuess === chosenNumber) {
       setIsCorrect(true);
-      setShowFeedback(false);
     } else {
-      setFeedback(parsedGuess > chosenNumber ? "You should guess lower." : "You should guess higher.");
+      setFeedback(numericGuess > chosenNumber ? "You should guess lower." : "You should guess higher.");
       setShowFeedback(true);
-      setGuess("");
     }
+
+    if (attempts - 1 === 0 && numericGuess !== chosenNumber) {
+      setGameOver(true);
+      setGameOverReason("You are out of attempts");
+    }
+
+    setGuess("");
   };
 
   const tryAgain = () => {
     setShowFeedback(false);
-    setGuess("");
   };
 
   const startNewGame = () => {
-    const newNumber = possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)];
-    setChosenNumber(newNumber);
+    setGameOver(false);
     setAttempts(4);
-    setAttemptsUsed(0);
     setTimeLeft(60);
     setGameStarted(false);
-    setIsCorrect(false);
-    setGuess("");
-    setHint(null);
-    setFeedback("");
     setShowFeedback(false);
+    setIsCorrect(false);
+    setHint(null);
+    setChosenNumber(possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)]);
   };
 
   return (
     <View style={styles.screen}>
-      {/* Restart Button */}
       <TouchableOpacity style={styles.restartButton} onPress={onRestart}>
         <Text style={styles.restartButtonText}>Restart</Text>
       </TouchableOpacity>
 
-      {isCorrect ? (
-        // Summary Card
+      {gameOver ? (
+        <Card style={styles.summaryCard}>
+          <Text style={styles.infoText}>The game is over!</Text>
+          <Image
+            source={require("../assets/SadFace.png")} // Adjust the path if necessary
+            style={styles.image}
+          />
+          <Text style={styles.infoText}>{gameOverReason}</Text>
+          <TouchableOpacity onPress={startNewGame} style={styles.newGameButton}>
+            <Text style={styles.newGameButtonText}>New Game</Text>
+          </TouchableOpacity>
+        </Card>
+      ) : isCorrect ? (
         <Card style={styles.summaryCard}>
           <Text style={styles.infoText}>You guessed correct!</Text>
           <Text style={styles.infoText}>Attempts used: {attemptsUsed}</Text>
@@ -112,19 +123,17 @@ const GameScreen = ({ phone, onRestart }) => {
           </TouchableOpacity>
         </Card>
       ) : showFeedback ? (
-        // Feedback Card
         <Card style={styles.feedbackCard}>
           <Text style={styles.infoText}>You did not guess correctly!</Text>
           <Text style={styles.infoText}>{feedback}</Text>
           <TouchableOpacity onPress={tryAgain} style={styles.tryAgainButton}>
             <Text style={styles.tryAgainButtonText}>Try Again</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => Alert.alert("Game Over", "Ending the game.")} style={styles.endGameButton}>
+          <TouchableOpacity onPress={() => setGameOver(true)} style={styles.endGameButton}>
             <Text style={styles.endGameButtonText}>End the game</Text>
           </TouchableOpacity>
         </Card>
       ) : (
-        // Main Guessing Card
         <Card style={styles.infoCard}>
           <Text style={styles.infoText}>
             Guess a number between 1 & 100 that is a multiple of {lastDigit}
@@ -138,12 +147,10 @@ const GameScreen = ({ phone, onRestart }) => {
                 onChangeText={(text) => setGuess(text)}
                 placeholder="Enter your guess"
                 keyboardType="numeric"
-                placeholderTextColor="#B0C4DE"
               />
               <Text style={styles.infoText}>Attempts left: {attempts}</Text>
               <Text style={styles.infoText}>Timer: {timeLeft}s</Text>
 
-              {/* Hint Button */}
               <TouchableOpacity onPress={useHint} style={styles.hintButton}>
                 <Text style={styles.hintButtonText}>Use a Hint</Text>
               </TouchableOpacity>
