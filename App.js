@@ -4,39 +4,45 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import StartScreen from './screens/StartScreen';
 import ConfirmScreen from './screens/ConfirmScreen';
+import GameScreen from './screens/GameScreen';
+import Colors from './assets/Colors';
 
 export default function App() {
+  // State to track the current screen
   const [status, setStatus] = useState("start");
   const [modalVisible, setModalVisible] = useState(false);
   const [userInfo, setUserInfo] = useState({ name: '', email: '', phone: '' });
-
-  // Function to handle starting the game
-  const startGame = () => {
-    setStatus("game");
-  }
 
   // Function to handle valid submission from StartScreen
   const onRegister = (name, email, phone) => {
     setUserInfo({ name, email, phone });
     setModalVisible(true); // Show the confirm modal
-  }
+  };
+
+  // Function to handle navigating to the Game screen
+  const startGame = () => {
+    setModalVisible(false);
+    setStatus("game");
+  };
+
+  // Function to reset all user data and navigate back to StartScreen
+  const restartGame = () => {
+    setUserInfo({ name: '', email: '', phone: '' });
+    setStatus("start");
+  };
 
   // Function to go back to StartScreen from modal
   const goBackToEdit = () => {
     setModalVisible(false);
-  }
-
-  // Confirm and continue to game screen
-  const confirmAndContinue = () => {
-    setModalVisible(false);
-    startGame(); // Proceed to the game screen
-  }
+  };
 
   let content = null;
 
-  // Render only the start screen for now
+  // Screen Logic
   if (status === 'start') {
     content = <StartScreen onRegister={onRegister} />;
+  } else if (status === 'game') {
+    content = <GameScreen phone={userInfo.phone} onRestart={restartGame} />;
   }
 
   return (
@@ -52,7 +58,7 @@ export default function App() {
           userInfo={userInfo}
           visible={modalVisible}
           onGoBack={goBackToEdit}
-          onContinue={confirmAndContinue}
+          onContinue={startGame}
         />
       </LinearGradient>
     </View>
@@ -73,3 +79,4 @@ const styles = StyleSheet.create({
     height: "100%",
   },
 });
+
