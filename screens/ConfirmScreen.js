@@ -33,18 +33,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(128,128,128,0.8)', // Grey overlay
+    backgroundColor: 'rgba(128,128,128,0.8)',
   },
   modalCard: {
     width: '80%',
     padding: 20,
     alignItems: 'center',
-    backgroundColor: 'grey', // Grey card background
+    backgroundColor: 'grey',
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
+    color: Colors.purplefont,
   },
   modalButtonContainer: {
     flexDirection: 'row',

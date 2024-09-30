@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } fro
 import Colors from "../assets/Colors";
 import Card from "../components/Card";
 
-const GameScreen = ({ phone, onRestart, onEndGame }) => {
+const GameScreen = ({ phone, onRestart }) => {
   const lastDigit = phone[phone.length - 1];
   const possibleNumbers = [];
   for (let i = 1; i <= 100; i++) {
@@ -29,16 +29,16 @@ const GameScreen = ({ phone, onRestart, onEndGame }) => {
   const [gameOverReason, setGameOverReason] = useState("");
 
   useEffect(() => {
-    if (gameStarted && timeLeft > 0) {
+    if (gameStarted && timeLeft > 0 && !isCorrect && attempts > 0) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
       }, 1000);
       return () => clearTimeout(timer);
-    } else if (timeLeft === 0) {
+    } else if (timeLeft === 0 && !isCorrect) {
       setGameOver(true);
       setGameOverReason("You are out of time");
     }
-  }, [timeLeft, gameStarted]);
+  }, [timeLeft, gameStarted, isCorrect, attempts]);
 
   const handleStart = () => {
     setGameStarted(true);
