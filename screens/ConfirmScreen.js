@@ -1,6 +1,9 @@
+// ConfirmScreen.js
 import React from 'react';
-import { View, Text, Button, Modal, StyleSheet } from 'react-native';
+import { View, Text, Modal, StyleSheet } from 'react-native';
 import Card from '../components/Card';
+import CustomButton from '../components/CustomButton';
+import TitleText from '../components/TitleText';
 import Colors from '../assets/Colors';
 
 const ConfirmScreen = ({ userInfo, visible, onGoBack, onContinue }) => {
@@ -12,15 +15,15 @@ const ConfirmScreen = ({ userInfo, visible, onGoBack, onContinue }) => {
     >
       <View style={styles.modalBackground}>
         <Card style={styles.modalCard}>
-          <Text style={styles.modalTitle}>Hello {userInfo.name}</Text>
+          <TitleText>Hello {userInfo.name}</TitleText>
           <Text>Here is the information you entered:</Text>
           <Text>{userInfo.email}</Text>
           <Text>{userInfo.phone}</Text>
           <Text>If it is not correct, please go back and edit them.</Text>
 
           <View style={styles.modalButtonContainer}>
-            <Button title="Go back" color={Colors.redfont} onPress={onGoBack} />
-            <Button title="Continue" color={Colors.purplefont} onPress={onContinue} />
+            <CustomButton title="Go back" onPress={onGoBack} style={{ backgroundColor: Colors.redfont }} />
+            <CustomButton title="Continue" onPress={onContinue} />
           </View>
         </Card>
       </View>
@@ -40,12 +43,6 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     backgroundColor: 'grey',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: Colors.purplefont,
   },
   modalButtonContainer: {
     flexDirection: 'row',

@@ -1,7 +1,11 @@
+// GameScreen.js
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from "react-native";
+import { View, Text, StyleSheet, Alert, Image, TouchableOpacity } from "react-native";
 import Colors from "../assets/Colors";
 import Card from "../components/Card";
+import CustomTextInput from '../components/CustomTextInput';
+import CustomButton from '../components/CustomButton';
+import TitleText from '../components/TitleText';
 
 const GameScreen = ({ phone, onRestart }) => {
   const lastDigit = phone[phone.length - 1];
@@ -28,15 +32,16 @@ const GameScreen = ({ phone, onRestart }) => {
   const [gameOver, setGameOver] = useState(false);
   const [gameOverReason, setGameOverReason] = useState("");
 
+  // Timer logic
   useEffect(() => {
     if (gameStarted && timeLeft > 0 && !isCorrect && attempts > 0) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
       }, 1000);
       return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && !isCorrect) {
+    } else if (timeLeft === 0 || attempts === 0) {
       setGameOver(true);
-      setGameOverReason("You are out of time");
+      setGameOverReason(timeLeft === 0 ? "You are out of time" : "You are out of attempts");
     }
   }, [timeLeft, gameStarted, isCorrect, attempts]);
 
@@ -44,11 +49,14 @@ const GameScreen = ({ phone, onRestart }) => {
     setGameStarted(true);
   };
 
+  // Updated hint logic
   const useHint = () => {
     if (!hint) {
-      const lowerBound = Math.floor((chosenNumber - 15) / 10) * 10;
-      const upperBound = Math.ceil((chosenNumber + 15) / 10) * 10;
-      setHint(`The correct number is between ${lowerBound} and ${upperBound}`);
+      if (chosenNumber <= 50) {
+        setHint(`The correct number is between 0 and 50`);
+      } else {
+        setHint(`The correct number is between 50 and 100`);
+      }
     }
   };
 
@@ -84,6 +92,7 @@ const GameScreen = ({ phone, onRestart }) => {
   const startNewGame = () => {
     setGameOver(false);
     setAttempts(4);
+    setAttemptsUsed(0); // Reset attemptsUsed to 0 for the new game
     setTimeLeft(60);
     setGameStarted(false);
     setShowFeedback(false);
@@ -94,55 +103,56 @@ const GameScreen = ({ phone, onRestart }) => {
 
   return (
     <View style={styles.screen}>
-      <TouchableOpacity style={styles.restartButton} onPress={onRestart}>
-        <Text style={styles.restartButtonText}>Restart</Text>
-      </TouchableOpacity>
+      {/* Restart Button */}
+      <CustomButton
+        title="Restart"
+        onPress={onRestart}
+        style={{ position: "absolute", top: 100, right: 20 }} // Adjusted position
+      />
 
       {gameOver ? (
+        // Game Over Card
         <Card style={styles.summaryCard}>
-          <Text style={styles.infoText}>The game is over!</Text>
+          <TitleText>The game is over!</TitleText>
           <Image
-            source={require("../assets/SadFace.png")} // Adjust the path if necessary
+            source={require("../assets/SadFace.png")} 
             style={styles.image}
           />
           <Text style={styles.infoText}>{gameOverReason}</Text>
-          <TouchableOpacity onPress={startNewGame} style={styles.newGameButton}>
-            <Text style={styles.newGameButtonText}>New Game</Text>
-          </TouchableOpacity>
+          <CustomButton title="New Game" onPress={startNewGame} />
         </Card>
       ) : isCorrect ? (
+        // Summary Card
         <Card style={styles.summaryCard}>
-          <Text style={styles.infoText}>You guessed correct!</Text>
+          <Text style={styles.infoText}>You guessed correct!</Text> 
           <Text style={styles.infoText}>Attempts used: {attemptsUsed}</Text>
-          <Image
-            source={{ uri: `https://picsum.photos/id/${chosenNumber}/100/100` }}
-            style={styles.image}
-          />
+          <Image source={{ uri: `https://picsum.photos/id/${chosenNumber}/100/100` }} style={styles.image} />
           <TouchableOpacity onPress={startNewGame} style={styles.newGameButton}>
             <Text style={styles.newGameButtonText}>New Game</Text>
           </TouchableOpacity>
         </Card>
       ) : showFeedback ? (
+        // Feedback Card
         <Card style={styles.feedbackCard}>
           <Text style={styles.infoText}>You did not guess correctly!</Text>
           <Text style={styles.infoText}>{feedback}</Text>
-          <TouchableOpacity onPress={tryAgain} style={styles.tryAgainButton}>
-            <Text style={styles.tryAgainButtonText}>Try Again</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setGameOver(true)} style={styles.endGameButton}>
-            <Text style={styles.endGameButtonText}>End the game</Text>
-          </TouchableOpacity>
+          <CustomButton title="Try Again" onPress={tryAgain} />
+          <CustomButton
+            title="End the game"
+            onPress={() => setGameOver(true)}
+            style={{ backgroundColor: Colors.redfont }}
+          />
         </Card>
       ) : (
+        // Main Guessing Card
         <Card style={styles.infoCard}>
-          <Text style={styles.infoText}>
+          <TitleText>
             Guess a number between 1 & 100 that is a multiple of {lastDigit}
-          </Text>
+          </TitleText>
 
           {gameStarted ? (
             <>
-              <TextInput
-                style={styles.input}
+              <CustomTextInput
                 value={guess}
                 onChangeText={(text) => setGuess(text)}
                 placeholder="Enter your guess"
@@ -151,19 +161,13 @@ const GameScreen = ({ phone, onRestart }) => {
               <Text style={styles.infoText}>Attempts left: {attempts}</Text>
               <Text style={styles.infoText}>Timer: {timeLeft}s</Text>
 
-              <TouchableOpacity onPress={useHint} style={styles.hintButton}>
-                <Text style={styles.hintButtonText}>Use a Hint</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={submitGuess} style={styles.submitButton}>
-                <Text style={styles.submitButtonText}>Submit Guess</Text>
-              </TouchableOpacity>
+              <CustomButton title="Use a Hint" onPress={useHint} />
+              <CustomButton title="Submit Guess" onPress={submitGuess} />
 
               {hint && <Text style={styles.hintText}>{hint}</Text>}
             </>
           ) : (
-            <TouchableOpacity onPress={handleStart} style={styles.startButton}>
-              <Text style={styles.startButtonText}>Start</Text>
-            </TouchableOpacity>
+            <CustomButton title="Start" onPress={handleStart} />
           )}
         </Card>
       )}
@@ -178,34 +182,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  restartButton: {
-    position: "absolute",
-    bottom: "78%", // Position close above the card
-    right: 20,
-  },
-  restartButtonText: {
-    color: Colors.purplefont,
-    fontSize: 18,
-  },
   infoCard: {
     width: "80%",
     padding: 20,
     borderRadius: 10,
-    backgroundColor: "rgba(211, 211, 211, 0.8)", // Light transparent grey
+    backgroundColor: "rgba(211, 211, 211, 0.8)",
     alignItems: "center",
   },
   feedbackCard: {
     width: "80%",
     padding: 20,
     borderRadius: 10,
-    backgroundColor: "rgba(211, 211, 211, 0.8)", // Light transparent grey
+    backgroundColor: "rgba(211, 211, 211, 0.8)",
     alignItems: "center",
   },
   summaryCard: {
     width: "80%",
     padding: 20,
     borderRadius: 10,
-    backgroundColor: "rgba(211, 211, 211, 0.8)", // Light transparent grey
+    backgroundColor: "rgba(211, 211, 211, 0.8)",
     alignItems: "center",
   },
   infoText: {
@@ -214,70 +209,15 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     textAlign: "center",
   },
-  input: {
-    height: 40,
-    borderColor: Colors.purplefont,
-    borderBottomWidth: 1,
+  image: {
     marginVertical: 15,
-    width: "60%",
-    textAlign: "center",
-    fontSize: 18,
-    color: Colors.purplefont,
+    width: 100,
+    height: 100,
   },
-  startButton: {
-    marginTop: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-    borderRadius: 5,
-    backgroundColor: Colors.purplefont,
-  },
-  startButtonText: {
-    color: "white",
-    fontSize: 16,
-  },
-  hintButton: {
+  hintText: {
     marginTop: 15,
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-    borderRadius: 5,
-    backgroundColor: Colors.purplefont,
-  },
-  hintButtonText: {
-    color: "white",
     fontSize: 16,
-  },
-  submitButton: {
-    marginTop: 15,
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-    borderRadius: 5,
-    backgroundColor: Colors.purplefont,
-  },
-  submitButtonText: {
-    color: "white",
-    fontSize: 16,
-  },
-  tryAgainButton: {
-    marginTop: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-    borderRadius: 5,
-    backgroundColor: Colors.purplefont,
-  },
-  tryAgainButtonText: {
-    color: "white",
-    fontSize: 16,
-  },
-  endGameButton: {
-    marginTop: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-    borderRadius: 5,
-    backgroundColor: Colors.redfont,
-  },
-  endGameButtonText: {
-    color: "white",
-    fontSize: 16,
+    color: Colors.redfont,
   },
   newGameButton: {
     marginTop: 20,
@@ -289,16 +229,6 @@ const styles = StyleSheet.create({
   newGameButtonText: {
     color: "white",
     fontSize: 16,
-  },
-  image: {
-    marginVertical: 15,
-    width: 100,
-    height: 100,
-  },
-  hintText: {
-    marginTop: 15,
-    fontSize: 16,
-    color: Colors.redfont,
   },
 });
 
