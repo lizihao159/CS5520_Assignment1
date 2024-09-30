@@ -1,8 +1,6 @@
-// StartScreen.js
 import React, { useState } from "react";
-import { View, Text, TextInput, Alert, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, Alert, StyleSheet } from "react-native";
 import CheckBox from 'react-native-check-box';
-import Card from "../components/Card";
 import Colors from "../assets/Colors";
 import CustomButton from '../components/CustomButton';
 import TitleText from '../components/TitleText';
@@ -22,6 +20,7 @@ const StartScreen = ({ onRegister }) => {
   // Validate Name
   const validateName = (value) => {
     setName(value);
+    // name should not be empty and should not contain numbers
     if (value.length <= 1 || /\d/.test(value)) {
       setNameError('Please enter a valid name');
     } else {
@@ -32,6 +31,7 @@ const StartScreen = ({ onRegister }) => {
   // Validate Email
   const validateEmail = (value) => {
     setEmail(value);
+    // email should match the email regex pattern
     const emailRegex = /\S+@\S+\.\S+/;
     if (!emailRegex.test(value)) {
       setEmailError('Please enter a valid email');
@@ -42,6 +42,7 @@ const StartScreen = ({ onRegister }) => {
 
   // Validate Phone
   const validatePhone = (value) => {
+    // phone should be 10 digits and should not contain any letters
     setPhone(value.replace(/[^0-9]/g, ""));
     if (value.length !== 10 || isNaN(value) || value[value.length - 1] === '0' || value[value.length - 1] === '1') {
       setPhoneError('Please enter a valid phone number');
@@ -63,6 +64,7 @@ const StartScreen = ({ onRegister }) => {
 
   // Confirm Input
   const confirmInput = () => {
+    // check if all inputs are valid and the checkbox is checked
     if (!nameError && !emailError && !phoneError && name && email && phone && isRobotChecked) {
       onRegister(name, email, phone);
     } else {
@@ -119,6 +121,7 @@ const StartScreen = ({ onRegister }) => {
         </View>
 
         {/* Buttons */}
+        {/* register button should be disabled if the form is not valid */}
         <View style={styles.buttonContainer}>
           <CustomButton title="Reset" onPress={resetInput} />
           <CustomButton

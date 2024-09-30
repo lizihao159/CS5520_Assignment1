@@ -1,12 +1,13 @@
-// GameScreen.js
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Alert, Image, TouchableOpacity } from "react-native";
 import Colors from "../assets/Colors";
 import Card from "../components/Card";
+
 import CustomTextInput from '../components/CustomTextInput';
 import CustomButton from '../components/CustomButton';
 import TitleText from '../components/TitleText';
 
+// check if the number is a multiple of the last digit of the phone number
 const GameScreen = ({ phone, onRestart }) => {
   const lastDigit = phone[phone.length - 1];
   const possibleNumbers = [];
@@ -16,10 +17,12 @@ const GameScreen = ({ phone, onRestart }) => {
     }
   }
 
+  // choose a random number from 1 to 100 based on the last digit of the phone number
   const [chosenNumber, setChosenNumber] = useState(
     possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)]
   );
 
+  // initialize the states of the game
   const [attempts, setAttempts] = useState(4);
   const [attemptsUsed, setAttemptsUsed] = useState(0);
   const [timeLeft, setTimeLeft] = useState(60);
@@ -34,10 +37,12 @@ const GameScreen = ({ phone, onRestart }) => {
 
   // Timer logic
   useEffect(() => {
+    // if the game has started, time is left, the answer is not correct, and there are attempts left
     if (gameStarted && timeLeft > 0 && !isCorrect && attempts > 0) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
       }, 1000);
+      // Clear or stop the timer if user wins or runs out of attempts
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 || attempts === 0) {
       setGameOver(true);
@@ -49,7 +54,7 @@ const GameScreen = ({ phone, onRestart }) => {
     setGameStarted(true);
   };
 
-  // Updated hint logic
+  // give user a hint based on the chosen number
   const useHint = () => {
     if (!hint) {
       if (chosenNumber <= 50) {
@@ -60,35 +65,41 @@ const GameScreen = ({ phone, onRestart }) => {
     }
   };
 
+  // make sure the guess is a number between 1 and 100
   const submitGuess = () => {
     const numericGuess = parseInt(guess);
     if (isNaN(numericGuess) || numericGuess < 1 || numericGuess > 100) {
       Alert.alert("Invalid Guess", "Please enter a number between 1 and 100.");
       return;
     }
-
-    setAttempts(attempts - 1);
-    setAttemptsUsed(attemptsUsed + 1);
-
+  
+    // Check if the guess is correct before decrementing attempts
     if (numericGuess === chosenNumber) {
       setIsCorrect(true);
     } else {
+      setAttempts(attempts - 1);
+      setAttemptsUsed(attemptsUsed + 1);
       setFeedback(numericGuess > chosenNumber ? "You should guess lower." : "You should guess higher.");
       setShowFeedback(true);
+  
+      // Check if user is out of attempts after decrementing
+      if (attempts - 1 === 0) {
+        setGameOver(true);
+        setGameOverReason("You are out of attempts");
+      }
     }
-
-    if (attempts - 1 === 0 && numericGuess !== chosenNumber) {
-      setGameOver(true);
-      setGameOverReason("You are out of attempts");
-    }
-
+  
     setGuess("");
   };
+  
+  
 
+  // give user another chance to guess and return to the game screen
   const tryAgain = () => {
     setShowFeedback(false);
   };
 
+  // start a new game and reset all the states
   const startNewGame = () => {
     setGameOver(false);
     setAttempts(4);
@@ -107,13 +118,14 @@ const GameScreen = ({ phone, onRestart }) => {
       <CustomButton
         title="Restart"
         onPress={onRestart}
-        style={{ position: "absolute", top: 100, right: 20 }} // Adjusted position
+        style={{ position: "absolute", top: 60, right: 20 }}
       />
 
       {gameOver ? (
         // Game Over Card
         <Card style={styles.summaryCard}>
           <TitleText>The game is over!</TitleText>
+          {/* Display the reason for the game over and a image of sad smiley face */}
           <Image
             source={require("../assets/SadFace.png")} 
             style={styles.image}
@@ -125,7 +137,8 @@ const GameScreen = ({ phone, onRestart }) => {
         // Summary Card
         <Card style={styles.summaryCard}>
           <Text style={styles.infoText}>You guessed correct!</Text> 
-          <Text style={styles.infoText}>Attempts used: {attemptsUsed}</Text>
+          <Text style={styles.infoText}>Attempts used: {attemptsUsed + 1}</Text>
+          {/* Display the image based on the chosen number*/}
           <Image source={{ uri: `https://picsum.photos/id/${chosenNumber}/100/100` }} style={styles.image} />
           <TouchableOpacity onPress={startNewGame} style={styles.newGameButton}>
             <Text style={styles.newGameButtonText}>New Game</Text>
@@ -134,9 +147,11 @@ const GameScreen = ({ phone, onRestart }) => {
       ) : showFeedback ? (
         // Feedback Card
         <Card style={styles.feedbackCard}>
+        {/*Display feedback and give user a chance to try again or end the game*/}
           <Text style={styles.infoText}>You did not guess correctly!</Text>
           <Text style={styles.infoText}>{feedback}</Text>
           <CustomButton title="Try Again" onPress={tryAgain} />
+          {/* End the game if the user wants to, and return to the main screen */}
           <CustomButton
             title="End the game"
             onPress={() => setGameOver(true)}
@@ -156,14 +171,15 @@ const GameScreen = ({ phone, onRestart }) => {
                 value={guess}
                 onChangeText={(text) => setGuess(text)}
                 placeholder="Enter your guess"
+                // make sure input is numeric
                 keyboardType="numeric"
               />
               <Text style={styles.infoText}>Attempts left: {attempts}</Text>
               <Text style={styles.infoText}>Timer: {timeLeft}s</Text>
-
+            {/* Add buttons for hint and submit guess */}
               <CustomButton title="Use a Hint" onPress={useHint} />
               <CustomButton title="Submit Guess" onPress={submitGuess} />
-
+            {/* Display hint if available */}
               {hint && <Text style={styles.hintText}>{hint}</Text>}
             </>
           ) : (

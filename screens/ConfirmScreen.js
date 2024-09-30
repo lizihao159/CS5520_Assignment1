@@ -1,4 +1,3 @@
-// ConfirmScreen.js
 import React from 'react';
 import { View, Text, Modal, StyleSheet } from 'react-native';
 import Card from '../components/Card';
@@ -13,6 +12,7 @@ const ConfirmScreen = ({ userInfo, visible, onGoBack, onContinue }) => {
       transparent={true}
       visible={visible}
     >
+      {/* Add a card to display the user information */}
       <View style={styles.modalBackground}>
         <Card style={styles.modalCard}>
           <TitleText>Hello {userInfo.name}</TitleText>
@@ -21,6 +21,7 @@ const ConfirmScreen = ({ userInfo, visible, onGoBack, onContinue }) => {
           <Text>{userInfo.phone}</Text>
           <Text>If it is not correct, please go back and edit them.</Text>
 
+          {/* Add buttons continue and back to previous screen*/}
           <View style={styles.modalButtonContainer}>
             <CustomButton title="Go back" onPress={onGoBack} style={{ backgroundColor: Colors.redfont }} />
             <CustomButton title="Continue" onPress={onContinue} />

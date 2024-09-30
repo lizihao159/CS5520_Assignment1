@@ -1,4 +1,3 @@
-// App.js
 import React, { useState } from "react";
 import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -6,7 +5,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import StartScreen from './screens/StartScreen';
 import ConfirmScreen from './screens/ConfirmScreen';
 import GameScreen from './screens/GameScreen';
-import Colors from './assets/Colors';
 
 export default function App() {
   const [status, setStatus] = useState("start");
@@ -34,6 +32,8 @@ export default function App() {
 
   let content = null;
 
+
+  // Add conditional rendering for the different screens
   if (status === 'start') {
     content = <StartScreen onRegister={onRegister} />;
   } else if (status === 'game') {
@@ -41,6 +41,7 @@ export default function App() {
   }
 
   return (
+    // add LinearGradient component to style the background cross the app
     <View style={styles.container}>
       <LinearGradient
         colors={['#a9c9ff', '#92a3fd']}
